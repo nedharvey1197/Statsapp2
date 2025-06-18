@@ -1,0 +1,9 @@
+streamlit
+pandas
+numpy
+matplotlib
+seaborn
+fpdf
+scipy
+statsmodels 
+fpdf2

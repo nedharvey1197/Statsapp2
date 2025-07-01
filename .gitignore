@@ -1,24 +1,53 @@
+# Deprecated files
+Depricated Files/
+
+# Logs
+logs/
+
+# Generated reports and outputs
+outputs/
+plots/
+*.pdf
+*.xlsx
+*.csv
+temp_data.csv
+
 # Python
 __pycache__/
 *.py[cod]
 *$py.class
 *.so
 .Python
-venv/
-ENV/
-env/
-.env
-
-# Distribution / packaging
-dist/
 build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
 *.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
 
 # IDE
-.idea/
 .vscode/
+.idea/
 *.swp
 *.swo
+*~
 
 # OS
 .DS_Store
@@ -29,7 +58,16 @@ build/
 ehthumbs.db
 Thumbs.db
 
+# SAS
+*.sas7bdat
+*.log
+
+# Temporary files
+*.tmp
+*.temp
+
+# Distribution / packaging
+*.egg-info/
+
 # Project specific
-outputs/
-plots/
 .specstory/ 

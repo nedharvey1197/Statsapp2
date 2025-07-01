@@ -1,16 +1,31 @@
 Treatment,TumorSize
-A,3.1
-A,3.5
-A,2.9
-A,3.0
-A,3.2
-B,4.1
-B,4.5
-B,4.2
-B,4.3
-B,4.4
-C,2.1
-C,2.3
-C,2.2
-C,2.4
-C,2.5
+Placebo,8000
+Placebo,7500
+Placebo,11000
+Placebo,10000
+Placebo,8500
+Placebo,9500
+Placebo,10100
+Placebo,7000
+Placebo,8800
+Placebo,12000
+Low Dose,4000
+Low Dose,8000
+Low Dose,4500
+Low Dose,5300
+Low Dose,6300
+Low Dose,7200
+Low Dose,5500
+Low Dose,4900
+Low Dose,5300
+Low Dose,7200
+High Dose,1002
+High Dose,945
+High Dose,2040
+High Dose,3000
+High Dose,2050
+High Dose,1056
+High Dose,400
+High Dose,745
+High Dose,903
+High Dose,870

@@ -19,6 +19,7 @@ import matplotlib.pyplot as plt
 import tempfile
 import json
 from typing import Dict, List, Any, Optional
+from utils.output_folder_utils import create_analysis_output_folder
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -51,6 +52,7 @@ from utils.ncss_report_builder import (
 from utils.ncss_export_utils import (
     export_report_to_excel, export_report_to_json
 )
+from utils.output_folder_utils import get_or_create_analysis_folder
 
 
 def cleanup_sas_session(sas_session=None):
@@ -101,6 +103,9 @@ def run_repeated_measures_analysis(sas, data_file):
     session_dir = os.path.join(logs_dir, f'repeated_ncss_{timestamp}')
     os.makedirs(session_dir, exist_ok=True)
     log_file_path = os.path.join(session_dir, 'sas_log.txt')
+    
+    # Create analysis-specific output folder for exports
+    output_folder = create_analysis_output_folder('repeated_measures')
     
     try:
         # Load and prepare data
@@ -262,7 +267,8 @@ def run_repeated_measures_analysis(sas, data_file):
             'fitstats': datasets.get('fitstats'),
             'residuals_data': datasets.get('residuals_data'),
             'sas_log': result['LOG'],
-            'model_state': model_state  # Add model_state to results
+            'model_state': model_state,  # Add model_state to results
+            'output_folder': output_folder  # Analysis-specific output folder for exports
         }
         
         logger.info("Analysis completed successfully")
@@ -312,7 +318,7 @@ def create_ncss_report_from_sas_results(sas_results, title="Repeated Measures An
     if fitstats is not None and not fitstats.empty:
         summary_rows = [(row.get('Descr', ''), str(row.get('Value', ''))) for _, row in fitstats.iterrows()]
         summary_table = NCSSTable(
-            title="Run Summary",
+            title="Fit Data Summary Table",
             columns=["Parameter", "Value"],
             rows=[{"Parameter": k, "Value": v} for k, v in summary_rows]
         )
@@ -1277,6 +1283,9 @@ def main():
                     st.session_state['ncss_report'] = report
                     st.session_state['sas_results'] = sas_results
                     st.session_state['analysis_completed'] = True
+                    # Store the output folder for reuse in exports
+                    if 'output_folder' in sas_results:
+                        st.session_state['output_folder'] = sas_results['output_folder']
                     logger.info("Session state updated successfully")
                     
                     logger.info("Triggering UI refresh...")
@@ -1306,14 +1315,27 @@ def main():
                         if report is None:
                             st.error("No report available. Please run the analysis first.")
                         else:
+                            # Use existing output folder from session state
+                            output_folder = st.session_state.get('output_folder')
+                            if not output_folder:
+                                st.error("No output folder found. Please run the analysis first.")
+                                return
+                            
+                            pdf_file = os.path.join(output_folder, f"repeated_measures_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf")
+                            
+                            # Generate PDF and save to file
                             pdf_bytes = build_ncss_pdf(report)
+                            with open(pdf_file, 'wb') as f:
+                                f.write(pdf_bytes)
+                            
                             st.download_button(
                                 label="💾 Download PDF Report",
                                 data=pdf_bytes,
-                                file_name=f"repeated_measures_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf",
+                                file_name=os.path.basename(pdf_file),
                                 mime="application/pdf",
                                 key="pdf_download"
                             )
+                            st.success(f"✅ PDF report saved to: {output_folder}")
                     except Exception as e:
                         st.error(f"Failed to generate PDF: {e}")
                         logger.error(f"PDF generation error: {e}")
@@ -1322,16 +1344,23 @@ def main():
                 if st.button("📊 Export to Excel", key="excel_btn"):
                     try:
                         report = st.session_state['ncss_report']
-                        excel_file = f"repeated_measures_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
+                        # Use existing output folder from session state
+                        output_folder = st.session_state.get('output_folder')
+                        if not output_folder:
+                            st.error("No output folder found. Please run the analysis first.")
+                            return
+                        
+                        excel_file = os.path.join(output_folder, f"repeated_measures_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx")
                         export_report_to_excel(report, excel_file)
                         with open(excel_file, 'rb') as f:
                             st.download_button(
                                 label="💾 Download Excel Report",
                                 data=f.read(),
-                                file_name=excel_file,
+                                file_name=os.path.basename(excel_file),
                                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                                 key="excel_download"
                             )
+                        st.success(f"✅ Excel report saved to: {output_folder}")
                     except Exception as e:
                         st.error(f"Failed to export Excel: {e}")
             
@@ -1341,7 +1370,7 @@ def main():
                     cleanup_sas_session(sas if 'sas' in locals() else None)
                     
                     # Clear session state
-                    for key in ['ncss_report', 'sas_results', 'analysis_completed']:
+                    for key in ['ncss_report', 'sas_results', 'analysis_completed', 'output_folder']:
                         if key in st.session_state:
                             del st.session_state[key]
                     st.rerun()

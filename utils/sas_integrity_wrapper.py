@@ -173,13 +173,6 @@ class SASIntegrityWrapper:
                 
                 ods html close;
                 ods trace off;
-                
-                /* Export result tables for Python */
-                %macro _export(tbl);
-                    proc download data=work.&tbl out=_null_;
-                    run;
-                %mend;
-                {''.join([f'%_export({t.lower()});' for t in tables])}
             """
             
             # Step 4: Execute the wrapped code
